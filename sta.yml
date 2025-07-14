@@ -1,12 +1,12 @@
 trigger:
-- none
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
   deploy: true  
-  destroy: true
+  destroy: false
 
 stages:
 - stage: Terraform_Install
