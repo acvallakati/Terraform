@@ -1,0 +1,61 @@
+trigger:
+- none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  deploy: true  
+  destroy: true
+
+stages:
+- stage: Terraform_Install
+  jobs:
+  - job: Install
+    steps:
+    - task: TerraformInstaller@1
+      displayName: Terraform Install
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: AzureCLI@2
+      displayName: Authentication to Azure STA
+      inputs:
+        azureSubscription: 'tacowagon-dev'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'echo authentication to azure'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: 'tacowagon-dev'
+        backendAzureRmResourceGroupName: 'autoshutdown'
+        backendAzureRmStorageAccountName: 'statefilesta1'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'terraform.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        environmentServiceNameAzureRM: 'tacowagon-dev'
+
+    - ${{ if eq(variables['deploy'], 'true') }}:
+      - task: TerraformTask@5
+        displayName: Terraform Apply
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          environmentServiceNameAzureRM: 'tacowagon-dev'
+
+    - ${{ if eq(variables['destroy'], 'true') }}:
+      - task: TerraformTask@5
+        displayName: Terraform Destroy
+        inputs:
+          provider: 'azurerm'
+          command: 'destroy'
+          environmentServiceNameAzureRM: 'tacowagon-dev'
