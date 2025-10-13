@@ -1,12 +1,13 @@
 provider "azurerm" {
   features {}
 }
-
+# Create Resource Group
 resource "azurerm_resource_group" "rsg" {
   name     = "sql-rsg"
   location = "West Europe"
 }
 
+# Create SQL server
 resource "azurerm_mssql_server" "sql-server" {
   name                         = "test-sqlserver"
   resource_group_name          = azurerm_resource_group.rsg.name
@@ -16,6 +17,7 @@ resource "azurerm_mssql_server" "sql-server" {
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
+# Create SQL Database
 resource "azurerm_mssql_database" "sql-db" {
   name         = "test-sql-db"
   server_id    = azurerm_mssql_server.sql-server.id
